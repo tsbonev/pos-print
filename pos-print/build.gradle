@@ -84,10 +84,10 @@ dependencies {
   compile 'ch.qos.logback:logback-classic:0.9.30'
 
   //MongoDatabase
-  compile 'org.mongodb:mongodb-driver:3.4.2'
+  compile 'org.mongodb:mongodb-driver:3.6.4'
 
   //FongoDatabase
-  compile 'com.github.fakemongo:fongo:2.0.9'
+  compile 'com.github.fakemongo:fongo:2.2.0-RC2'
 
   compile 'com.github.spullara.cli-parser:cli-parser:1.1.2'
   compile 'com.google.code.gson:gson:2.8.0'
