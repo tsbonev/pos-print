@@ -34,7 +34,12 @@ class PersistentReceiptRepositoryTest {
 
   private val repository = PersistentReceiptRepository(Providers.of(dataStoreRule.db()), printingListener)
 
-  private val anyReceipt = Receipt.newReceipt().withReceiptId("::receiptId::").build()
+  private val receipt = Receipt.newReceipt().withReceiptId("::receiptId::").build()
+  private val sourceIp = "1.1.1.1"
+  private val operatorId = "2.2.2.2"
+  private val isFiscal = true
+
+  private val receiptRequest = ReceiptRequest(receipt, sourceIp, operatorId, isFiscal)
 
   @Test
   fun mongoQueue(){
@@ -43,27 +48,27 @@ class PersistentReceiptRepositoryTest {
 
   @Test
   fun happyPath() {
-    repository.register(anyReceipt)
+    repository.register(receiptRequest)
 
-    assertThat(repository.getStatus(anyReceipt.receiptId), Is(PrintStatus.PRINTING))
+    assertThat(repository.getStatus(receipt.receiptId), Is(PrintStatus.PRINTING))
   }
 
   @Test
   fun queueReceipt() {
-    assertThat(repository.register(anyReceipt), Is(anyReceipt.receiptId))
+    assertThat(repository.register(receiptRequest), Is(receipt.receiptId))
   }
 
   @Test(expected = ReceiptAlreadyInQueueException::class)
   fun queueingReceiptTwiceThrowsException() {
-    repository.register(anyReceipt)
-    repository.register(anyReceipt)
+    repository.register(receiptRequest)
+    repository.register(receiptRequest)
   }
 
   @Test
   fun getReceiptStatus() {
-    repository.register(anyReceipt)
+    repository.register(receiptRequest)
 
-    assertThat(repository.getStatus(anyReceipt.receiptId), Is(PrintStatus.PRINTING))
+    assertThat(repository.getStatus(receipt.receiptId), Is(PrintStatus.PRINTING))
   }
 
   @Test(expected = ReceiptNotInQueueException::class)
@@ -73,23 +78,23 @@ class PersistentReceiptRepositoryTest {
 
   @Test
   fun getReceiptsByStatus() {
-    repository.register(anyReceipt)
+    repository.register(receiptRequest)
 
     val printingReceipts = repository.getByStatus(PrintStatus.PRINTING)
     val printedReceipts = repository.getByStatus(PrintStatus.PRINTED)
 
-    assertThat(printingReceipts, Is(listOf(anyReceipt)))
+    assertThat(printingReceipts, Is(listOf(receipt)))
     assertThat(printedReceipts, Is(emptyList()))
   }
 
   @Test
   fun finishReceipt() {
     context.expecting {
-      oneOf(printingListener).onPrinted(anyReceipt, PrintStatus.PRINTED)
+      oneOf(printingListener).onPrinted(receipt, PrintStatus.PRINTED)
     }
 
-    repository.register(anyReceipt)
-    val finishedReceipt = repository.finishPrinting(anyReceipt.receiptId)
+    repository.register(receiptRequest)
+    val finishedReceipt = repository.finishPrinting(receipt.receiptId)
 
     assertThat(repository.getStatus(finishedReceipt.receiptId), Is(PrintStatus.PRINTED))
   }
@@ -102,11 +107,11 @@ class PersistentReceiptRepositoryTest {
   @Test
   fun rejectReceipt() {
     context.expecting {
-      oneOf(printingListener).onPrinted(anyReceipt, PrintStatus.FAILED)
+      oneOf(printingListener).onPrinted(receipt, PrintStatus.FAILED)
     }
 
-    repository.register(anyReceipt)
-    val finishedReceipt = repository.failPrinting(anyReceipt.receiptId)
+    repository.register(receiptRequest)
+    val finishedReceipt = repository.failPrinting(receipt.receiptId)
 
     assertThat(repository.getStatus(finishedReceipt.receiptId), Is(PrintStatus.FAILED))
   }

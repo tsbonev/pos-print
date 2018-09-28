@@ -1,5 +1,7 @@
 package com.clouway.pos.print.core
 
+import java.util.Optional
+
 /**
  * Provides the methods to persist, save and check the status
  * of requested receipts.
@@ -11,11 +13,35 @@ interface ReceiptRepository {
   /**
    * Registers a receipt in persistence.
    *
-   * @param receipt the receipt to save
+   * @param receiptRequest the receipt request to save
    * @return the id of the receipt
    */
   @Throws(ReceiptAlreadyInQueueException::class)
-  fun register(receipt: Receipt): String
+  fun register(receiptRequest: ReceiptRequest): String
+
+  /**
+   * Retrieves an optional receipt by id.
+   *
+   * @param receiptId the id of the receipt
+   * @return an optional receipt
+   */
+  fun getByReceiptId(receiptId: String): Optional<ReceiptRequest>
+
+  /**
+   * Retrieves a list of receipts that have the same source ip.
+   *
+   * @param sourceIp the source ip to query by
+   * @return a list of receipts
+   */
+  fun getBySourceIp(sourceIp: String): List<ReceiptRequest>
+
+  /**
+   * Retrieves a list of receipts that were sent by the same operator.
+   *
+   * @param operatorId the operator id to query by
+   * @return a list of receipts
+   */
+  fun getByOperatorId(operatorId: String): List<ReceiptRequest>
 
   /**
    * Returns the printing status of a receipt.

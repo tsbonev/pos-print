@@ -25,7 +25,10 @@ class PrintServiceV2 @Inject constructor(private var repository: ReceiptReposito
   fun printReceipt(request: Request): Reply<*> {
     return try {
       val dto = request.read(ReceiptDTO::class.java).`as`(GsonTransport::class.java)
-      val receiptId = repository.register(dto.receipt)
+
+      val receiptRequest = ReceiptRequest(dto.receipt, dto.sourceIp, dto.operatorId, dto.fiscal)
+
+      val receiptId = repository.register(receiptRequest)
 
       queue.queue(PrintReceiptRequest(dto.receipt, dto.sourceIp, dto.fiscal))
 

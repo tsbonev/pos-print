@@ -31,9 +31,12 @@ class PrintServiceV2Test {
   private val receipt = Receipt.newReceipt().withReceiptId("::receipt-id::").build()
 
   private val sourceIp = "::sourceIp::"
+  private val operatorId = "::operatorId::"
   private val isFiscal = true
 
   private val receiptWithSource = PrintReceiptRequest(receipt, sourceIp, isFiscal)
+
+  private val receiptRequest = ReceiptRequest(receipt, sourceIp, operatorId, isFiscal)
 
   private val receiptDTO = PrintServiceV2
     .ReceiptDTO(sourceIp, "::operatorId::", isFiscal, receipt = receipt)
@@ -43,7 +46,7 @@ class PrintServiceV2Test {
   @Test
   fun queueReceiptForPrinting(){
     context.expecting {
-      oneOf(repo).register(receipt)
+      oneOf(repo).register(receiptRequest)
       will(returnValue(receipt.receiptId))
 
       oneOf(queue).queue(receiptWithSource)
@@ -57,7 +60,7 @@ class PrintServiceV2Test {
   @Test
   fun savingAlreadyExistingReceiptThrowsException(){
     context.expecting {
-      oneOf(repo).register(receipt)
+      oneOf(repo).register(receiptRequest)
       will(throwException(ReceiptAlreadyInQueueException()))
     }
 

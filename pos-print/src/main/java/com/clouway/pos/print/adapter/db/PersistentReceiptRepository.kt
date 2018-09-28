@@ -8,7 +8,7 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.eq
 import com.mongodb.client.model.Updates.set
 import org.bson.Document
-import org.slf4j.LoggerFactory
+import java.util.Optional
 
 /**
  * @author Tsvetozar Bonev (tsvetozar.bonev@clouway.com)
@@ -18,15 +18,51 @@ class PersistentReceiptRepository @Inject constructor(private val database: Prov
   : ReceiptRepository {
   private val collectionName: String = "receipts"
 
-  override fun register(receipt: Receipt): String {
+  override fun register(receiptRequest: ReceiptRequest): String {
+    val receipt = receiptRequest.receipt
+
     if (receipts().find(eq("receiptId", receipt.receiptId)).firstOrNull() != null)
       throw ReceiptAlreadyInQueueException()
 
-    val receiptDoc = receipt.toDocument()
+    val receiptDoc = receiptRequest.toDocument()
 
     receipts().insertOne(receiptDoc)
 
     return receipt.receiptId
+  }
+
+  override fun getByReceiptId(receiptId: String): Optional<ReceiptRequest> {
+    val receiptDoc = receipts().find(
+      eq("receiptId", receiptId)).firstOrNull()
+      ?: return Optional.empty()
+
+    return Optional.of(receiptDoc.toReceiptRequest())
+  }
+
+  override fun getByOperatorId(operatorId: String): List<ReceiptRequest> {
+    val docList = receipts().find(
+      eq("operatorId", operatorId)).toList()
+
+    val receiptList = mutableListOf<ReceiptRequest>()
+
+    docList.forEach {
+      receiptList.add(it.toReceiptRequest())
+    }
+
+    return receiptList
+  }
+
+  override fun getBySourceIp(sourceIp: String): List<ReceiptRequest> {
+    val docList = receipts().find(
+      eq("sourceIp", sourceIp)).toList()
+
+    val receiptList = mutableListOf<ReceiptRequest>()
+
+    docList.forEach {
+      receiptList.add(it.toReceiptRequest())
+    }
+
+    return receiptList
   }
 
   override fun getStatus(receiptId: String): PrintStatus {
@@ -118,6 +154,25 @@ class PersistentReceiptRepository @Inject constructor(private val database: Prov
       .append("currency", this.currency)
       .append("receiptItems", docList)
       .append("status", PrintStatus.PRINTING.name)
+  }
+
+  private fun ReceiptRequest.toDocument(): Document{
+    val receiptDoc = this.receipt.toDocument()
+
+    receiptDoc["sourceI p"] = this.sourceIp
+    receiptDoc["operatorId"] = this.operatorId
+    receiptDoc["isFiscal"] = this.isFiscal
+
+    return receiptDoc
+  }
+
+  private fun Document.toReceiptRequest(): ReceiptRequest{
+    val receipt = this.toReceipt()
+
+    return ReceiptRequest(receipt,
+      this["sourceIp"] as String,
+      this["operatorId"] as String,
+      this["isFiscal"] as Boolean)
   }
 
   private fun ReceiptItem.toDocument(): Document{
