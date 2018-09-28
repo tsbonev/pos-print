@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue
  */
 class InMemoryPrintQueue : PrintQueue {
 
-  private val queueMax = 50
+  private val queueMax = 1000
 
   private val queue = ArrayBlockingQueue<PrintReceiptRequest>(queueMax)
 

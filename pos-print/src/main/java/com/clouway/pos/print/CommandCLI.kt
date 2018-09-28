@@ -9,7 +9,7 @@ import java.util.*
 class CommandCLI {
 
   @field:Argument(prefix = "--", description = "HTTP Listen Address")
-  private var httpPort = 8080
+  private var httpPort = 4567
 
   @field:Argument(prefix = "--", description = "Database hosts", delimiter = ";")
   private var dbHost = arrayOf("localhost:27017")
