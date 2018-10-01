@@ -51,6 +51,22 @@ dependencies {
   compile 'com.google.inject.extensions:guice-servlet:3.0'
   compile 'com.google.guava:guava:19.0'
 
+
+  //Grpc
+  compile group: 'io.grpc', name: 'grpc-netty-shaded', version: '1.15.0'
+  compile group: 'io.grpc', name: 'grpc-auth', version: '1.15.0'
+  compile group: 'io.grpc', name: 'grpc-protobuf', version: '1.15.0'
+
+
+  //Google Cloud Logging
+  compile ("com.google.cloud:google-cloud-logging:1.46.0"){
+    exclude group: "io.grpc"
+  }
+  //Google Logback
+  compile ('com.google.cloud:google-cloud-logging-logback:0.64.0-alpha'){
+    exclude group: "com.google.cloud"
+  }
+
   // Internal version of Sitebricks
   compile('org.mvel:mvel2:2.1.3.Final')
   compile('org.jsoup:jsoup:1.8.1')
